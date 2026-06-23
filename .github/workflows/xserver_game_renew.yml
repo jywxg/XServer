@@ -8,6 +8,9 @@ jobs:
   renew:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: write
+      actions: write
     
     steps:
       - name: 📥 拉取私库脚本
@@ -48,9 +51,7 @@ jobs:
       - name: 🧹 清理旧的工作流运行记录
         env:
           GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}   # 👈 关键修复：显式指定仓库
         run: |
-          # 获取当前工作流的所有运行记录，保留最近 1 条，删除其余
           runs=$(gh run list --workflow="${{ github.workflow }}" --limit=100 --json databaseId --jq '.[].databaseId')
           count=0
           for run_id in $runs; do
