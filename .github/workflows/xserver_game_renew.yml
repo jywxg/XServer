@@ -44,3 +44,18 @@ jobs:
           GOST_PROXY: ${{ secrets.GOST_PROXY }}
           TG_BOT: ${{ secrets.TG_BOT }}
         run: python3 xserver_game_renew.py
+
+       - name: 🧹 清理旧的工作流运行记录
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # 获取当前工作流的所有运行记录，保留最近 1 条，删除其余
+          runs=$(gh run list --workflow="${{ github.workflow }}" --limit=100 --json databaseId --jq '.[].databaseId')
+          count=0
+          for run_id in $runs; do
+            count=$((count + 1))
+            if [ $count -gt 1 ]; then
+              echo "删除运行记录: $run_id"
+              gh run delete $run_id || true
+            fi
+          done  
