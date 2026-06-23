@@ -49,16 +49,32 @@ jobs:
           TG_BOT: ${{ secrets.TG_BOT }}
         run: python3 xserver_game_renew.py
 
-      - name: 🧹 清理旧的工作流运行记录
+
+      - name: 🧹 清理旧工作流记录
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          runs=$(gh run list --workflow="${{ github.workflow }}" --limit=100 --json databaseId --jq '.[].databaseId')
-          count=0
-          for run_id in $runs; do
-            count=$((count + 1))
-            if [ $count -gt 1 ]; then
-              gh run delete "$run_id" || true
+          REPO="${{ github.repository }}"
+
+          gh api \
+            repos/$REPO/actions/runs \
+            --paginate \
+            --jq '.workflow_runs[].id' > runs.txt
+
+          skip=1
+
+          while read run_id; do
+            if [ $skip -eq 1 ]; then
+              skip=0
+              continue
             fi
-          done
+
+            echo "删除运行记录: $run_id"
+
+            gh api \
+              -X DELETE \
+              repos/$REPO/actions/runs/$run_id \
+              || true
+
+          done < runs.txt
