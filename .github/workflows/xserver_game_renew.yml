@@ -45,7 +45,7 @@ jobs:
           TG_BOT: ${{ secrets.TG_BOT }}
         run: python3 xserver_game_renew.py
 
-       - name: 🧹 清理旧的工作流运行记录
+      - name: 🧹 清理旧的工作流运行记录
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -58,4 +58,4 @@ jobs:
               echo "删除运行记录: $run_id"
               gh run delete $run_id || true
             fi
-          done  
+          done
